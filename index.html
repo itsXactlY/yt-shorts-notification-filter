@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en" data-color-scheme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouTube Shorts Notification Filter • Chrome Extension</title>
+  <meta name="description" content="A clean, no-nonsense Chrome extension that surgically removes YouTube Shorts from your notifications while keeping everything else untouched." />
+
+  <style>
+    :root {
+      /* Primitive Color Tokens */
+      --color-white: rgba(255, 255, 255, 1);
+      --color-black: rgba(0, 0, 0, 1);
+      --color-cream-50: rgba(252, 252, 249, 1);
+      --color-cream-100: rgba(255, 255, 253, 1);
+      --color-gray-200: rgba(245, 245, 245, 1);
+      --color-gray-300: rgba(167, 169, 169, 1);
+      --color-gray-400: rgba(119, 124, 124, 1);
+      --color-slate-500: rgba(98, 108, 113, 1);
+      --color-brown-600: rgba(94, 82, 64, 1);
+      --color-charcoal-700: rgba(31, 33, 33, 1);
+      --color-charcoal-800: rgba(38, 40, 40, 1);
+      --color-slate-900: rgba(19, 52, 59, 1);
+      --color-teal-300: rgba(50, 184, 198, 1);
+      --color-teal-400: rgba(45, 166, 178, 1);
+      --color-teal-500: rgba(33, 128, 141, 1);
+      --color-teal-600: rgba(29, 116, 128, 1);
+      --color-teal-700: rgba(26, 104, 115, 1);
+      --color-teal-800: rgba(41, 150, 161, 1);
+      --color-red-400: rgba(255, 84, 89, 1);
+      --color-red-500: rgba(192, 21, 47, 1);
+      --color-orange-400: rgba(230, 129, 97, 1);
+      --color-orange-500: rgba(168, 75, 47, 1);
+
+      /* RGB versions for opacity control */
+      --color-brown-600-rgb: 94, 82, 64;
+      --color-teal-500-rgb: 33, 128, 141;
+      --color-slate-900-rgb: 19, 52, 59;
+      --color-slate-500-rgb: 98, 108, 113;
+      --color-red-500-rgb: 192, 21, 47;
+      --color-red-400-rgb: 255, 84, 89;
+      --color-orange-500-rgb: 168, 75, 47;
+      --color-orange-400-rgb: 230, 129, 97;
+
+      /* Background color tokens (Light Mode) */
+      --color-bg-1: rgba(59, 130, 246, 0.08);
+      --color-bg-2: rgba(245, 158, 11, 0.08);
+      --color-bg-3: rgba(34, 197, 94, 0.08);
+      --color-bg-4: rgba(239, 68, 68, 0.08);
+      --color-bg-5: rgba(147, 51, 234, 0.08);
+      --color-bg-6: rgba(249, 115, 22, 0.08);
+      --color-bg-7: rgba(236, 72, 153, 0.08);
+      --color-bg-8: rgba(6, 182, 212, 0.08);
+
+      /* Semantic Color Tokens (Light Mode) */
+      --color-background: var(--color-cream-50);
+      --color-surface: var(--color-cream-100);
+      --color-text: var(--color-slate-900);
+      --color-text-secondary: var(--color-slate-500);
+      --color-primary: var(--color-teal-500);
+      --color-primary-hover: var(--color-teal-600);
+      --color-primary-active: var(--color-teal-700);
+      --color-secondary: rgba(var(--color-brown-600-rgb), 0.12);
+      --color-secondary-hover: rgba(var(--color-brown-600-rgb), 0.2);
+      --color-secondary-active: rgba(var(--color-brown-600-rgb), 0.25);
+      --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+      --color-btn-primary-text: var(--color-cream-50);
+      --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+      --color-card-border-inner: rgba(var(--color-brown-600-rgb), 0.12);
+      --color-error: var(--color-red-500);
+      --color-success: var(--color-teal-500);
+      --color-warning: var(--color-orange-500);
+      --color-info: var(--color-slate-500);
+      --color-focus-ring: rgba(var(--color-teal-500-rgb), 0.4);
+      --color-select-caret: rgba(var(--color-slate-900-rgb), 0.8);
+
+      /* RGB versions for opacity control */
+      --color-success-rgb: 33, 128, 141;
+      --color-error-rgb: 192, 21, 47;
+      --color-warning-rgb: 168, 75, 47;
+      --color-info-rgb: 98, 108, 113;
+
+      /* Typography */
+      --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system,
+        BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-family-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo,
+        Monaco, Consolas, monospace;
+      --font-size-xs: 11px;
+      --font-size-sm: 12px;
+      --font-size-base: 14px;
+      --font-size-md: 14px;
+      --font-size-lg: 16px;
+      --font-size-xl: 18px;
+      --font-size-2xl: 20px;
+      --font-size-3xl: 24px;
+      --font-size-4xl: 30px;
+      --font-weight-normal: 400;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 550;
+      --font-weight-bold: 600;
+      --line-height-tight: 1.2;
+      --line-height-normal: 1.5;
+      --letter-spacing-tight: -0.01em;
+
+      /* Spacing */
+      --space-0: 0;
+      --space-1: 1px;
+      --space-2: 2px;
+      --space-4: 4px;
+      --space-6: 6px;
+      --space-8: 8px;
+      --space-10: 10px;
+      --space-12: 12px;
+      --space-16: 16px;
+      --space-20: 20px;
+      --space-24: 24px;
+      --space-32: 32px;
+
+      /* Border Radius */
+      --radius-sm: 6px;
+      --radius-base: 8px;
+      --radius-md: 10px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
+
+      /* Shadows */
+      --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04),
+        0 2px 4px -1px rgba(0, 0, 0, 0.02);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04),
+        0 4px 6px -2px rgba(0, 0, 0, 0.02);
+      --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+
+      /* Animation */
+      --duration-fast: 150ms;
+      --duration-normal: 250ms;
+      --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+
+      /* Layout */
+      --container-sm: 640px;
+      --container-md: 768px;
+      --container-lg: 1024px;
+      --container-xl: 1280px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-gray-400-rgb: 119, 124, 124;
+        --color-teal-300-rgb: 50, 184, 198;
+        --color-gray-300-rgb: 167, 169, 169;
+        --color-gray-200-rgb: 245, 245, 245;
+
+        --color-bg-1: rgba(29, 78, 216, 0.15);
+        --color-bg-2: rgba(180, 83, 9, 0.15);
+        --color-bg-3: rgba(21, 128, 61, 0.15);
+        --color-bg-4: rgba(185, 28, 28, 0.15);
+        --color-bg-5: rgba(107, 33, 168, 0.15);
+        --color-bg-6: rgba(194, 65, 12, 0.15);
+        --color-bg-7: rgba(190, 24, 93, 0.15);
+        --color-bg-8: rgba(8, 145, 178, 0.15);
+
+        --color-background: var(--color-charcoal-700);
+        --color-surface: var(--color-charcoal-800);
+        --color-text: var(--color-gray-200);
+        --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
+        --color-primary: var(--color-teal-300);
+        --color-primary-hover: var(--color-teal-400);
+        --color-primary-active: var(--color-teal-800);
+        --color-secondary: rgba(var(--color-gray-400-rgb), 0.15);
+        --color-secondary-hover: rgba(var(--color-gray-400-rgb), 0.25);
+        --color-secondary-active: rgba(var(--color-gray-400-rgb), 0.3);
+        --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+        --color-error: var(--color-red-400);
+        --color-success: var(--color-teal-300);
+        --color-warning: var(--color-orange-400);
+        --color-info: var(--color-gray-300);
+        --color-focus-ring: rgba(var(--color-teal-300-rgb), 0.4);
+        --color-btn-primary-text: var(--color-slate-900);
+        --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
+        --color-card-border-inner: rgba(var(--color-gray-400-rgb), 0.15);
+        --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+        --button-border-secondary: rgba(var(--color-gray-400-rgb), 0.2);
+        --color-border-secondary: rgba(var(--color-gray-400-rgb), 0.2);
+        --color-select-caret: rgba(var(--color-gray-200-rgb), 0.8);
+
+        --focus-ring: 0 0 0 3px var(--color-focus-ring);
+        --focus-outline: 2px solid var(--color-primary);
+        --status-bg-opacity: 0.15;
+        --status-border-opacity: 0.25;
+        --select-caret-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+
+        --color-success-rgb: var(--color-teal-300-rgb);
+        --color-error-rgb: var(--color-red-400-rgb);
+        --color-warning-rgb: var(--color-orange-400-rgb);
+        --color-info-rgb: var(--color-gray-300-rgb);
+      }
+    }
+
+    [data-color-scheme="dark"] {
+      --color-gray-400-rgb: 119, 124, 124;
+      --color-teal-300-rgb: 50, 184, 198;
+      --color-gray-300-rgb: 167, 169, 169;
+      --color-gray-200-rgb: 245, 245, 245;
+
+      --color-bg-1: rgba(29, 78, 216, 0.15);
+      --color-bg-2: rgba(180, 83, 9, 0.15);
+      --color-bg-3: rgba(21, 128, 61, 0.15);
+      --color-bg-4: rgba(185, 28, 28, 0.15);
+      --color-bg-5: rgba(107, 33, 168, 0.15);
+      --color-bg-6: rgba(194, 65, 12, 0.15);
+      --color-bg-7: rgba(190, 24, 93, 0.15);
+      --color-bg-8: rgba(8, 145, 178, 0.15);
+
+      --color-background: var(--color-charcoal-700);
+      --color-surface: var(--color-charcoal-800);
+      --color-text: var(--color-gray-200);
+      --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
+      --color-primary: var(--color-teal-300);
+      --color-primary-hover: var(--color-teal-400);
+      --color-primary-active: var(--color-teal-800);
+      --color-secondary: rgba(var(--color-gray-400-rgb), 0.15);
+      --color-secondary-hover: rgba(var(--color-gray-400-rgb), 0.25);
+      --color-secondary-active: rgba(var(--color-gray-400-rgb), 0.3);
+      --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+      --color-error: var(--color-red-400);
+      --color-success: var(--color-teal-300);
+      --color-warning: var(--color-orange-400);
+      --color-info: var(--color-gray-300);
+      --color-focus-ring: rgba(var(--color-teal-300-rgb), 0.4);
+      --color-btn-primary-text: var(--color-slate-900);
+      --color-card-border: rgba(var(--color-gray-400-rgb), 0.15);
+      --color-card-border-inner: rgba(var(--color-gray-400-rgb), 0.15);
+      --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+      --color-border-secondary: rgba(var(--color-gray-400-rgb), 0.2);
+      --color-select-caret: rgba(var(--color-gray-200-rgb), 0.8);
+
+      --focus-ring: 0 0 0 3px var(--color-focus-ring);
+      --focus-outline: 2px solid var(--color-primary);
+      --status-bg-opacity: 0.15;
+      --status-border-opacity: 0.25;
+      --select-caret-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+
+      --color-success-rgb: var(--color-teal-300-rgb);
+      --color-error-rgb: var(--color-red-400-rgb);
+      --color-warning-rgb: var(--color-orange-400-rgb);
+      --color-info-rgb: var(--color-gray-300-rgb);
+    }
+
+    [data-color-scheme="light"] {
+      --color-brown-600-rgb: 94, 82, 64;
+      --color-teal-500-rgb: 33, 128, 141;
+      --color-slate-900-rgb: 19, 52, 59;
+
+      --color-background: var(--color-cream-50);
+      --color-surface: var(--color-cream-100);
+      --color-text: var(--color-slate-900);
+      --color-text-secondary: var(--color-slate-500);
+      --color-primary: var(--color-teal-500);
+      --color-primary-hover: var(--color-teal-600);
+      --color-primary-active: var(--color-teal-700);
+      --color-secondary: rgba(var(--color-brown-600-rgb), 0.12);
+      --color-secondary-hover: rgba(var(--color-brown-600-rgb), 0.2);
+      --color-secondary-active: rgba(var(--color-brown-600-rgb), 0.25);
+      --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+      --color-btn-primary-text: var(--color-cream-50);
+      --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+      --color-card-border-inner: rgba(var(--color-brown-600-rgb), 0.12);
+      --color-error: var(--color-red-500);
+      --color-success: var(--color-teal-500);
+      --color-warning: var(--color-orange-500);
+      --color-info: var(--color-slate-500);
+      --color-focus-ring: rgba(var(--color-teal-500-rgb), 0.4);
+
+      --color-success-rgb: var(--color-teal-500-rgb);
+      --color-error-rgb: var(--color-red-500-rgb);
+      --color-warning-rgb: var(--color-orange-500-rgb);
+      --color-info-rgb: var(--color-slate-500-rgb);
+    }
+
+    html {
+      font-size: var(--font-size-base);
+      font-family: var(--font-family-base);
+      line-height: var(--line-height-normal);
+      color: var(--color-text);
+      background: radial-gradient(circle at top, rgba(33, 128, 141, 0.3), transparent 55%),
+                  radial-gradient(circle at bottom, rgba(192, 21, 47, 0.25), transparent 55%),
+                  radial-gradient(circle at left, rgba(147, 51, 234, 0.2), transparent 55%),
+                  var(--color-background);
+      -webkit-font-smoothing: antialiased;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      color: var(--color-text);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: inherit;
+    }
+
+    @font-face {
+      font-family: 'FKGroteskNeue';
+      src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2')
+        format('woff2');
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      margin: 0;
+      font-weight: var(--font-weight-semibold);
+      line-height: var(--line-height-tight);
+      color: var(--color-text);
+      letter-spacing: var(--letter-spacing-tight);
+    }
+
+    h1 {
+      font-size: clamp(2.8rem, 4vw, 3.4rem);
+    }
+
+    h2 {
+      font-size: var(--font-size-3xl);
+    }
+
+    p {
+      margin: 0 0 var(--space-16) 0;
+    }
+
+    a {
+      color: var(--color-primary);
+      text-decoration: none;
+      transition: color var(--duration-fast) var(--ease-standard);
+    }
+
+    a:hover {
+      color: var(--color-primary-hover);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-10) var(--space-20);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-md);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+      cursor: pointer;
+      transition: all var(--duration-normal) var(--ease-standard);
+      border: none;
+      text-decoration: none;
+      position: relative;
+      isolation: isolate;
+      white-space: nowrap;
+    }
+
+    .btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--color-focus-ring);
+    }
+
+    .btn--primary {
+      background: radial-gradient(circle at 10% 0, rgba(50,184,198,1) 0, rgba(33,128,141,1) 45%, rgba(26,104,115,1) 100%);
+      color: var(--color-btn-primary-text);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    .btn--primary::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: conic-gradient(
+        from 180deg at 50% 50%,
+        rgba(50, 184, 198, 0.35),
+        rgba(236, 72, 153, 0.35),
+        rgba(249, 115, 22, 0.35),
+        rgba(50, 184, 198, 0.35)
+      );
+      opacity: 0;
+      filter: blur(16px);
+      z-index: -1;
+      transition: opacity var(--duration-normal) var(--ease-standard),
+                  filter var(--duration-normal) var(--ease-standard);
+    }
+
+    .btn--primary:hover::before {
+      opacity: 1;
+      filter: blur(22px);
+    }
+
+    .btn--primary:hover {
+      transform: translateY(-1px) scale(1.01);
+    }
+
+    .btn--primary:active {
+      transform: translateY(0) scale(0.99);
+      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.55);
+    }
+
+    .btn--ghost {
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--color-text-secondary);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      backdrop-filter: blur(18px);
+    }
+
+    .btn--ghost:hover {
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    .btn--sm {
+      padding: var(--space-6) var(--space-16);
+      font-size: var(--font-size-sm);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px 4px 4px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: radial-gradient(circle at 0 0, rgba(50, 184, 198, 0.5), rgba(15, 23, 42, 0.95));
+      color: var(--color-gray-200);
+      font-size: var(--font-size-xs);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .badge__dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background:
+        conic-gradient(
+          from 180deg at 50% 50%,
+          rgba(56, 189, 248, 0.9),
+          rgba(236, 72, 153, 0.9),
+          rgba(249, 115, 22, 0.9),
+          rgba(56, 189, 248, 0.9)
+        );
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+    }
+
+    .badge__dot-inner {
+      width: 10px;
+      height: 10px;
+      border-radius: inherit;
+      background: radial-gradient(circle at 30% 0, #f9fafb, rgba(15, 23, 42, 0.8));
+    }
+
+    .badge__shine {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        120deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.35) 40%,
+        transparent 80%
+      );
+      transform: translateX(-100%);
+      animation: shine 4.5s infinite;
+    }
+
+    @keyframes shine {
+      0% {
+        transform: translateX(-100%);
+      }
+      16% {
+        transform: translateX(100%);
+      }
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    .container {
+      width: 100%;
+      margin-right: auto;
+      margin-left: auto;
+      padding-right: var(--space-16);
+      padding-left: var(--space-16);
+      max-width: var(--container-xl);
+    }
+
+    .page-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(20px);
+      background: linear-gradient(
+        to bottom,
+        rgba(15, 23, 42, 0.94),
+        rgba(15, 23, 42, 0.8),
+        transparent
+      );
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .nav__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      gap: var(--space-16);
+    }
+
+    .nav__brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--color-gray-200);
+      text-decoration: none;
+    }
+
+    .nav__logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background:
+        conic-gradient(
+          from 210deg at 50% 50%,
+          rgba(248, 113, 113, 0.95),
+          rgba(248, 250, 252, 1),
+          rgba(248, 113, 113, 0.95)
+        );
+      display: grid;
+      place-items: center;
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 0 25px rgba(248, 113, 113, 0.6);
+    }
+
+    .nav__logo-inner {
+      width: 22px;
+      height: 22px;
+      border-radius: inherit;
+      background: radial-gradient(circle at 20% 0, #0f172a, #020617);
+      display: grid;
+      place-items: center;
+      color: #f9fafb;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .nav__name {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav__title {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .nav__subtitle {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+    }
+
+    .nav__links {
+      display: flex;
+      align-items: center;
+      gap: var(--space-16);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+    }
+
+    .nav__links a {
+      color: var(--color-text-secondary);
+      position: relative;
+      padding-bottom: 4px;
+    }
+
+    .nav__links a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 0%;
+      height: 1px;
+      background: linear-gradient(to right, #22c55e, #0ea5e9, #f97316);
+      transition: width var(--duration-normal) var(--ease-standard);
+    }
+
+    .nav__links a:hover::after {
+      width: 100%;
+    }
+
+    .hero {
+      padding: 56px 0 72px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .hero__layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.05fr);
+      gap: 48px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .hero__layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .hero {
+        padding-top: 36px;
+      }
+    }
+
+    .hero__eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--color-gray-300);
+      font-size: var(--font-size-xs);
+      margin-bottom: var(--space-12);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero__eyebrow-pill {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, #22c55e, #166534);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4);
+    }
+
+    .hero__headline {
+      margin-bottom: var(--space-12);
+      color: var(--color-gray-200);
+    }
+
+    .hero__headline span {
+      background: linear-gradient(to right, #22c55e, #0ea5e9, #f97316);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero__subcopy {
+      max-width: 560px;
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-md);
+    }
+
+    .hero__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-12);
+      align-items: center;
+      margin-top: var(--space-20);
+      margin-bottom: var(--space-8);
+    }
+
+    .hero__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-16);
+      align-items: center;
+      margin-top: var(--space-8);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+    }
+
+    .hero__meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    .hero__meta-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #22c55e, #0ea5e9);
+    }
+
+    .hero__right {
+      position: relative;
+    }
+
+    .orbital-shell {
+      position: relative;
+      width: min(460px, 100%);
+      margin-left: auto;
+      margin-right: auto;
+      aspect-ratio: 4 / 3;
+      display: grid;
+      place-items: center;
+    }
+
+    .orbital__halo {
+      position: absolute;
+      inset: 14%;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 10% 0, rgba(56, 189, 248, 0.3), transparent 65%),
+        radial-gradient(circle at 90% 100%, rgba(248, 113, 113, 0.28), transparent 55%),
+        radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.26), transparent 70%);
+      filter: blur(18px);
+      opacity: 0.85;
+    }
+
+    .orbital__ring {
+      position: absolute;
+      inset: 8%;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      pointer-events: none;
+      mask-image: radial-gradient(circle at 50% 50%, transparent 35%, black 60%);
+    }
+
+    .orbital__ring::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      border: 1px solid transparent;
+      border-image: conic-gradient(
+        from 210deg,
+        rgba(34, 197, 94, 0.9),
+        rgba(56, 189, 248, 0.9),
+        rgba(249, 115, 22, 0.9),
+        rgba(34, 197, 94, 0.9)
+      ) 1;
+      opacity: 0.85;
+      filter: drop-shadow(0 0 18px rgba(56, 189, 248, 0.5));
+    }
+
+    .orbital__grid {
+      position: absolute;
+      inset: 14%;
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at 0 0, rgba(148, 163, 184, 0.18), transparent 70%),
+        linear-gradient(to bottom right, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.92));
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      box-shadow:
+        0 25px 55px rgba(15, 23, 42, 0.95),
+        0 0 0 1px rgba(15, 23, 42, 1);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .orbital__grid-header {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.85);
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.14), transparent 65%);
+    }
+
+    .orbital__grid-title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .orbital__grid-title span:first-child {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .orbital__grid-title span:last-child {
+      font-size: 13px;
+      color: var(--color-gray-100);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(22, 163, 74, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.6);
+      font-size: 10px;
+      color: #bbf7d0;
+    }
+
+    .orbital__grid-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--color-text-secondary);
+    }
+
+    .orbital__grid-badges span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(51, 65, 85, 0.9);
+    }
+
+    .orbital__grid-body {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .orbital__grid-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .orbital__metric-card {
+      border-radius: 14px;
+      padding: 10px 11px;
+      background: radial-gradient(circle at 0 0, rgba(34, 197, 94, 0.18), transparent 60%),
+                  rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #e5e7eb;
+    }
+
+    .orbital__metric-card--red {
+      background: radial-gradient(circle at 0 0, rgba(248, 113, 113, 0.22), transparent 60%),
+                  rgba(15, 23, 42, 0.96);
+      border-color: rgba(248, 113, 113, 0.6);
+    }
+
+    .orbital__metric-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .orbital__metric-label span:first-child {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(148, 163, 184, 0.95);
+    }
+
+    .orbital__metric-label span:last-child {
+      font-size: 12px;
+    }
+
+    .orbital__metric-value {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .orbital__metric-value--green {
+      color: #bbf7d0;
+    }
+
+    .orbital__metric-value--red {
+      color: #fecaca;
+    }
+
+    .orbital__toggles {
+      border-radius: 14px;
+      padding: 9px 10px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.16), transparent 65%),
+                  rgba(15, 23, 42, 0.95);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11px;
+      color: #e5e7eb;
+    }
+
+    .orbital__toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .orbital__toggle-label {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .orbital__toggle-label span:first-child {
+      font-size: 11px;
+    }
+
+    .orbital__toggle-label span:last-child {
+      font-size: 10px;
+      color: rgba(148, 163, 184, 0.95);
+    }
+
+    .toggle-pill {
+      width: 34px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .toggle-pill::before {
+      content: "";
+      position: absolute;
+      top: 1px;
+      left: 1px;
+      width: 14px;
+      height: 14px;
+      border-radius: inherit;
+      background: radial-gradient(circle at 30% 0, #f9fafb, #e5e7eb);
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+      transition: transform var(--duration-normal) var(--ease-standard),
+                  background var(--duration-normal) var(--ease-standard);
+    }
+
+    .toggle-pill--on {
+      background: radial-gradient(circle at 10% 0, rgba(34, 197, 94, 0.8), rgba(21, 128, 61, 0.9));
+      border-color: rgba(34, 197, 94, 0.85);
+    }
+
+    .toggle-pill--on::before {
+      transform: translateX(14px);
+    }
+
+    .orbital__grid-footer {
+      border-top: 1px solid rgba(51, 65, 85, 0.8);
+      padding: 8px 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10px;
+      color: rgba(148, 163, 184, 0.95);
+      background: radial-gradient(circle at 100% 0, rgba(249, 115, 22, 0.16), transparent 60%);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chip-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: #0ea5e9;
+    }
+
+    .hero__note {
+      margin-top: var(--space-16);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+      max-width: 480px;
+    }
+
+    .section {
+      padding: 0 0 64px;
+    }
+
+    .section__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .section__title {
+      font-size: var(--font-size-xl);
+      color: var(--color-gray-200);
+    }
+
+    .section__subtitle {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      max-width: 460px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .feature-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .feature-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .feature-card {
+      border-radius: 18px;
+      padding: 16px 15px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.2), transparent 60%),
+                  rgba(15, 23, 42, 0.96);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card__icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, #f9fafb, #cbd5f5);
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      margin-bottom: 8px;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.95);
+    }
+
+    .feature-card__title {
+      font-size: var(--font-size-sm);
+      color: var(--color-gray-100);
+      margin-bottom: 6px;
+    }
+
+    .feature-card__body {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+
+    .feature-card__tag {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .code-block {
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background:
+        radial-gradient(circle at 0 0, rgba(34, 197, 94, 0.2), transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.18), transparent 55%),
+        rgba(15, 23, 42, 0.96);
+      padding: 12px 14px 12px;
+      font-family: var(--font-family-mono);
+      font-size: 11px;
+      color: #e5e7eb;
+      box-shadow: 0 22px 40px rgba(15, 23, 42, 0.9);
+      overflow-x: auto;
+    }
+
+    .code-block__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 10px;
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .code-block__dots {
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .code-block__dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    .code-block__dot:nth-child(2) {
+      background: #eab308;
+    }
+
+    .code-block__dot:nth-child(3) {
+      background: #ef4444;
+    }
+
+    .code-block code {
+      white-space: pre;
+    }
+
+    .footer {
+      padding: 24px 0 26px;
+      border-top: 1px solid rgba(148, 163, 184, 0.35);
+      background: radial-gradient(circle at 100% 0, rgba(56, 189, 248, 0.24), transparent 60%);
+      font-size: 11px;
+      color: var(--color-text-secondary);
+    }
+
+    .footer__inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .footer__links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .footer__links a {
+      color: var(--color-text-secondary);
+    }
+
+    .footer__links a:hover {
+      color: var(--color-primary);
+    }
+
+    @media (max-width: 640px) {
+      .nav__inner {
+        flex-wrap: wrap;
+      }
+
+      .nav__links {
+        display: none;
+      }
+
+      .hero__actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .hero__actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="nav">
+      <div class="container nav__inner">
+        <a class="nav__brand" href="#top">
+          <div class="nav__logo">
+            <div class="nav__logo-inner">
+              SF
+            </div>
+          </div>
+          <div class="nav__name">
+            <div class="nav__title">Shorts Notification Filter</div>
+            <div class="nav__subtitle">Surgical control for your YouTube brainspace</div>
+          </div>
+        </a>
+        <nav class="nav__links" aria-label="Primary">
+          <a href="#features">Features</a>
+          <a href="#install">Install</a>
+          <a href="#code">Code</a>
+        </nav>
+        <a href="#install" class="btn btn--sm btn--ghost">
+          Get the extension
+        </a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="container hero__layout">
+          <div>
+            <div class="badge">
+              <span class="badge__dot">
+                <span class="badge__dot-inner"></span>
+              </span>
+              <span>Manifest V3 • Notification-grade filtering</span>
+              <span class="badge__shine" aria-hidden="true"></span>
+            </div>
+
+            <div class="hero__eyebrow" style="margin-top: 10px;">
+              <span class="hero__eyebrow-pill"></span>
+              <span>For people who don‘t want Shorts hijacking their dopamine loop.</span>
+            </div>
+
+            <h1 class="hero__headline">
+              DE-ALGORITHMIZE YOUR <span>ATTENTION</span>.
+            </h1>
+            <p class="hero__subcopy">
+              <strong>YouTube Shorts Notification Filter</strong> quietly strips Shorts out of your notifications and bell dropdown — no drama, no bloat, no mystery settings. Just clean, focused alerts again.
+            </p>
+
+            <div class="hero__actions">
+              <a href="#install" class="btn btn--primary">
+                Apply the Patch (30s Source Install)
+              </a>
+              <a href="#code" class="btn btn--ghost">
+                Audit the Logic (GitHub)
+              </a>
+            </div>
+
+            <div class="hero__meta">
+              <div class="hero__meta-item">
+                <span class="hero__meta-dot"></span>
+                <span>Intercept & drop Shorts-type packets</span>
+              </div>
+              <div class="hero__meta-item">
+                <span class="hero__meta-dot" style="background: linear-gradient(to right,#22c55e,#f97316);"></span>
+                <span>Force /shorts to /watch protocol upgrade</span>
+              </div>
+              <div class="hero__meta-item">
+                <span class="hero__meta-dot" style="background: linear-gradient(to right,#0ea5e9,#6366f1);"></span>
+                <span>White-list persistence & theme overrides</span>
+              </div>
+            </div>
+
+            <p class="hero__note">
+              We don't ask for permission; we enforce a policy. Developed for high-performance signal clarity. No black-box AI. No telemetry. Pure client-side execution.
+            </p>
+          </div>
+
+          <div class="hero__right" aria-hidden="true">
+            <div class="orbital-shell">
+              <div class="orbital__halo"></div>
+              <div class="orbital__ring"></div>
+
+              <div class="orbital__grid">
+                <div class="orbital__grid-header">
+                  <div class="orbital__grid-title">
+                    <span>System Enforcement Telemetry</span>
+                    <span>
+                      Shorts Filter
+                      <span class="pill-pill">
+                        <span style="width:7px;height:7px;border-radius:999px;background:#22c55e;"></span>
+                        Active
+                      </span>
+                    </span>
+                  </div>
+                  <div class="orbital__grid-badges">
+                    <span>
+                      <span style="width:6px;height:6px;border-radius:999px;background:#22c55e;"></span>
+                      v1.1.0
+                    </span>
+                    <span>
+                      <span style="width:6px;height:6px;border-radius:999px;background:#0ea5e9;"></span>
+                      Manifest V3
+                    </span>
+                  </div>
+                </div>
+
+                <div class="orbital__grid-body">
+                  <div class="orbital__grid-col">
+                    <div class="orbital__metric-card">
+                      <div class="orbital__metric-label">
+                        <span>Noise Packets Dropped</span>
+                        <span>Signal-to-Noise Ratio Stabilized</span>
+                      </div>
+                      <div class="orbital__metric-value orbital__metric-value--green">
+                        12,487
+                      </div>
+                    </div>
+                    <div class="orbital__metric-card orbital__metric-card--red">
+                      <div class="orbital__metric-label">
+                        <span>Whitelisted Exceptions</span>
+                        <span>Bypassing global filter</span>
+                      </div>
+                      <div class="orbital__metric-value orbital__metric-value--red">
+                        7
+                      </div>
+                    </div>
+                  </div>
+                  <div class="orbital__grid-col">
+                    <div class="orbital__toggles">
+                      <div class="orbital__toggle-row">
+                        <div class="orbital__toggle-label">
+                          <span>Notification Purge</span>
+                          <span>Purge Shorts packets from bell menu.</span>
+                        </div>
+                        <div class="toggle-pill toggle-pill--on"></div>
+                      </div>
+                      <div class="orbital__toggle-row">
+                        <div class="orbital__toggle-label">
+                          <span>Global Feed Override</span>
+                          <span>Sanitize global notification history.</span>
+                        </div>
+                        <div class="toggle-pill toggle-pill--on"></div>
+                      </div>
+                      <div class="orbital__toggle-row">
+                        <div class="orbital__toggle-label">
+                          <span>Protocol Upgrade</span>
+                          <span>Force-convert fragments to watch instances.</span>
+                        </div>
+                        <div class="toggle-pill toggle-pill--on"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="orbital__grid-footer">
+                  <div class="chip-row">
+                    <div class="chip">
+                      <span class="chip-dot"></span>
+                      <span>MutationObserver pipeline</span>
+                    </div>
+                    <div class="chip">
+                      <span class="chip-dot" style="background:#22c55e;"></span>
+                      <span>Chrome Storage state</span>
+                    </div>
+                    <div class="chip">
+                      <span class="chip-dot" style="background:#f97316;"></span>
+                      <span>1.5s sweep cadence</span>
+                    </div>
+                  </div>
+                  <span>Designed for people who don’t want to babysit their tools.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="section">
+        <div class="container">
+          <div class="section__header">
+            <h2 class="section__title">Exactly the controls you need — nothing you don‘t.</h2>
+            <p class="section__subtitle">
+              The extension is intentionally minimal: every switch in the popup maps to a real behavior in the codebase —
+              no dark UX, no hidden “experiments”, just flags you can reason about.
+            </p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <div class="feature-card__icon">🔕</div>
+              <div class="feature-card__title">Bell dropdown, decluttered</div>
+              <div class="feature-card__body">
+                Hide Shorts notifications specifically in the bell menu while leaving normal uploads untouched, so you can finally see the things you actually subscribed for.
+              </div>
+              <div class="feature-card__tag">Bell Filter</div>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-card__icon">📥</div>
+              <div class="feature-card__title">Notifications page filter</div>
+              <div class="feature-card__body">
+                Clean up the dedicated notifications page without touching the homepage layout that YouTube constantly rewires. Focus on what’s stable and under your control.
+              </div>
+              <div class="feature-card__tag">Stable Surface</div>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-card__icon">↪️</div>
+              <div class="feature-card__title">Protocol Upgrade redirect</div>
+              <div class="feature-card__body">
+                If a Shorts link sneaks in, you can silently upgrade it to the full watch page instead of getting pulled into the vertical doom-scroll pit.
+              </div>
+              <div class="feature-card__tag">Smart Redirect</div>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-card__icon">🎨</div>
+              <div class="feature-card__title">Theme control, in one place</div>
+              <div class="feature-card__body">
+                Flip YouTube between System / Light / Dark right from the popup — useful if your browser theme doesn’t quite match how you use YouTube at night.
+              </div>
+              <div class="feature-card__tag">YouTube Theme</div>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-card__icon">🛡️</div>
+              <div class="feature-card__title">Creator whitelist</div>
+              <div class="feature-card__body">
+                Add channels whose Shorts you actually want to see. Their content is always allowed through, everything else obeys the filter rules.
+              </div>
+              <div class="feature-card__tag">Whitelist</div>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-card__icon">⚙️</div>
+              <div class="feature-card__title">Manifest V3 &amp; lean runtime</div>
+              <div class="feature-card__body">
+                Built on Manifest V3 with a background service worker and mutation observers — no bloated frameworks, just the DOM surgery required to get the job done.
+              </div>
+              <div class="feature-card__tag">Under the hood</div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="install" class="section">
+        <div class="container">
+          <div class="section__header">
+            <h2 class="section__title">Install in under a minute</h2>
+            <p class="section__subtitle">
+              The extension ships as a simple unpacked folder — perfect for GitHub Pages and power users who prefer reading the code they run.
+            </p>
+          </div>
+
+          <div class="code-block">
+            <div class="code-block__header">
+              <div>
+                <div class="code-block__dots">
+                  <span class="code-block__dot"></span>
+                  <span class="code-block__dot"></span>
+                  <span class="code-block__dot"></span>
+                </div>
+              </div>
+              <span>chrome://extensions • yt-shorts-notification-filter</span>
+            </div>
+            <code>
+1. Clone the repository from GitHub
+
+   git clone https://github.com/itsXactlY/yt-shorts-notification-filter.git
+   cd yt-shorts-notification-filter
+
+2. Open Chrome, Edge or Brave and navigate to:
+
+   chrome://extensions
+
+3. Enable "Developer mode" (top-right corner).
+
+4. Click "Load unpacked" and select the
+   <strong>yt-shorts-notification-filter</strong> folder.
+
+5. Reload YouTube and open the notification bell.
+   Shorts should now be filtered from:
+
+   - the bell dropdown
+   - the notifications page
+
+   (Homepage Shorts are intentionally untouched, by design.)
+            </code>
+          </div>
+        </div>
+      </section>
+
+      <section id="code" class="section">
+        <div class="container">
+          <div class="section__header">
+            <h2 class="section__title">Transparent by default</h2>
+            <p class="section__subtitle">
+              No telemetry, no remote config. Everything about how Shorts are detected and removed lives in plain JavaScript inside <code>content.js</code> and the popup UI.
+            </p>
+          </div>
+
+          <div class="code-block">
+            <div class="code-block__header">
+              <div class="code-block__dots">
+                <span class="code-block__dot"></span>
+                <span class="code-block__dot"></span>
+                <span class="code-block__dot"></span>
+              </div>
+              <span>manifest.json</span>
+            </div>
+            <code>{
+  "manifest_version": 3,
+  "name": "YouTube Shorts Notification Filter",
+  "version": "1.1.0",
+  "description": "Filters Shorts from YouTube notifications and optionally redirects Shorts URLs to regular watch pages.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://youtube.com/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://youtube.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Shorts Filter"
+  }
+}</code>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__inner">
+        <span>Built for people who want YouTube notifications to behave like a tool again, not a casino.</span>
+        <div class="footer__links">
+          <a href="#top">Back to top</a>
+          <span>•</span>
+          <span>MIT-licensed • Host on GitHub Pages &amp; load unpacked in Chrome</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
