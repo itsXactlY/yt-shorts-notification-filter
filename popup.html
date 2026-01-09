@@ -230,6 +230,44 @@
 
         .btn-secondary:hover { background: #1a1a1a; border-color: var(--text-dim); }
 
+        .whitelist-list {
+            margin-bottom: 20px;
+        }
+
+        .filter-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .filter-item-text {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-main);
+            word-break: break-all;
+        }
+
+        .filter-remove {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 9px;
+            cursor: pointer;
+        }
+
+        .filter-remove:hover {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
         .footer {
             padding: 14px;
             text-align: center;
@@ -286,6 +324,13 @@
             </div>
             <div class="control-item">
                 <div class="control-info">
+                    <span>Notifications Page Purge</span>
+                    <span>Intercept Shorts on /notifications</span>
+                </div>
+                <div class="switch active" id="notificationsToggle"><div class="slider"></div></div>
+            </div>
+            <div class="control-item">
+                <div class="control-info">
                     <span>Redirect Protocol</span>
                     <span>Force /watch instances</span>
                 </div>
@@ -299,6 +344,7 @@
             <input type="text" id="whitelistInput" placeholder="CHANNEL_ID...">
             <button class="btn-action" id="addWhitelistBtn">ADD</button>
         </div>
+        <div id="whitelistContainer" class="whitelist-list"></div>
 
         <!-- SYSTEM UTILITIES -->
         <div class="utility-row">

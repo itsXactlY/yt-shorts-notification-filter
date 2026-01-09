@@ -1,12 +1,93 @@
 const $ = (id) => document.getElementById(id);
 
-async function getState() {
-  const res = await chrome.runtime.sendMessage({ type: "GET_STATE" });
-  return res.state;
+async function safeSendMessage(message, maxRetries = 3, timeout = 1000) {
+  let attempt = 0;
+  let lastError = null;
+
+  while (attempt < maxRetries) {
+    try {
+      // Check if extension context is valid
+      if (!chrome.runtime || !chrome.runtime.sendMessage) {
+        throw new Error('Extension context invalidated');
+      }
+
+      const promise = chrome.runtime.sendMessage(message);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Message timeout')), timeout)
+      );
+
+      const result = await Promise.race([promise, timeoutPromise]);
+      return result;
+
+    } catch (err) {
+      attempt++;
+      lastError = err;
+      console.debug(`[YT-Shorts-Filter] Message attempt ${attempt} failed:`, err.message || err);
+
+      if (attempt >= maxRetries) {
+        console.error('[YT-Shorts-Filter] Max retries reached, giving up');
+        return null;
+      }
+
+      // Exponential backoff
+      await new Promise(resolve => setTimeout(resolve, 100 * attempt));
+    }
+  }
+
+  return null;
+}
+
+async function getState(retryCount = 3) {
+  // Local caching to reduce background communication
+  const CACHE_TTL = 5000; // 5 seconds
+  if (window.popupStateCache && window.lastCacheUpdate &&
+      (Date.now() - window.lastCacheUpdate) < CACHE_TTL) {
+    console.log('[Popup] Returning cached state');
+    return {...window.popupStateCache};
+  }
+
+  try {
+    const res = await safeSendMessage({ type: "GET_STATE" });
+
+    console.log('[Popup] GET_STATE response:', res);
+    if (!res) {
+      console.error('[Popup] GET_STATE returned null/undefined');
+      if (retryCount > 0) {
+        console.log('[Popup] Retrying GET_STATE... (attempts left:', retryCount, ')');
+        await new Promise(resolve => setTimeout(resolve, 200));
+        return getState(retryCount - 1);
+      }
+      // Return cached state if available, otherwise defaults
+      return window.popupStateCache || { enabled: true, filterBell: true, filterNotificationsPage: true, redirectShorts: true, whitelistChannels: [], stats: { blocked: 0, allowed: 0 } };
+    }
+    if (res.error) {
+      console.error('[Popup] GET_STATE error:', res.error);
+      return window.popupStateCache || { enabled: true, filterBell: true, filterNotificationsPage: true, redirectShorts: true, whitelistChannels: [], stats: { blocked: 0, allowed: 0 } };
+    }
+
+    // Cache successful response
+    window.popupStateCache = res.state;
+    window.lastCacheUpdate = Date.now();
+    return res.state;
+  } catch (error) {
+    console.error('[Popup] GET_STATE exception:', error);
+    if (retryCount > 0) {
+      console.log('[Popup] Retrying GET_STATE... (attempts left:', retryCount, ')');
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return getState(retryCount - 1);
+    }
+    return window.popupStateCache || { enabled: true, filterBell: true, filterNotificationsPage: true, redirectShorts: true, whitelistChannels: [], stats: { blocked: 0, allowed: 0 } };
+  }
 }
 
 async function setState(patch) {
-  await chrome.runtime.sendMessage({ type: "SET_STATE", patch });
+  const result = await safeSendMessage({ type: "SET_STATE", patch });
+  // Invalidate cache on successful state update
+  if (result && result.ok) {
+    window.popupStateCache = null;
+    window.lastCacheUpdate = 0;
+  }
+  return result;
 }
 
 function createToggle(elementId, isActive, onChange) {
@@ -52,11 +133,11 @@ function renderWhitelist(list) {
 async function init() {
   const st = await getState();
   
-  // Stats
+  
   $("blockedCount").textContent = st.stats?.blocked || 0;
   $("allowedCount").textContent = st.stats?.allowed || 0;
   
-  // Status toggle
+  
   $("statusText").textContent = st.enabled ? "Active - Filtering Shorts" : "Inactive - All Shorts shown";
   $("statusText").parentElement.querySelector(".status-badge")?.remove();
   if (!st.enabled) {
@@ -66,7 +147,7 @@ async function init() {
     $("statusText").parentElement.appendChild(badge);
   }
 
-  // Create toggles
+  
   createToggle("extensionToggle", st.enabled, async (val) => {
     await setState({ enabled: val });
     init();
@@ -84,13 +165,7 @@ async function init() {
     await setState({ redirectShorts: val });
   });
 
-  // Theme dropdown
-  $("themeSelect").value = st.theme || "system";
-  $("themeSelect").onchange = async (e) => {
-    await setState({ theme: e.target.value });
-  };
-
-  // Whitelist
+  
   renderWhitelist(st.whitelistChannels || []);
 }
 
@@ -114,7 +189,6 @@ async function reloadYouTube() {
   if (tab?.id) chrome.tabs.reload(tab.id);
 }
 
-// Event listeners
 $("addWhitelistBtn").onclick = addWhitelist;
 $("whitelistInput").onkeypress = (e) => {
   if (e.key === "Enter") addWhitelist();
@@ -122,5 +196,4 @@ $("whitelistInput").onkeypress = (e) => {
 $("resetBtn").onclick = resetStats;
 $("reloadBtn").onclick = reloadYouTube;
 
-// Initialize
 init();

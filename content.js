@@ -34,7 +34,14 @@ function hasShortsUrl(itemEl) {
 
 function looksLikeShortsBadge(itemEl) {
   const t = (itemEl.innerText || "").toLowerCase();
-  return t.includes("shorts") || t.includes("#shorts");
+
+  if (/^\s*shorts\b|^\s*[•·]\s*shorts\b|\bshorts\s*[•·]|\bnew\s+shorts\b|\bcheck\s+out\s+shorts\b/i.test(t)) {
+    return true;
+  }
+  if (/#shorts\b(?!\s*(collection|style|summer|winter|fashion|clothing|outfit|pants|swim))/i.test(t)) {
+    return true;
+  }
+  return false;
 }
 
 async function thumbLooksVertical(itemEl) {
@@ -71,7 +78,7 @@ async function processNotifications(root = document) {
 
     const block = await shouldBlock(item);
     if (!block) {
-      chrome.runtime.sendMessage({ type: "INCR_STAT", key: "allowed" });
+      safeSendMessage({ type: "INCR_STAT", key: "allowed" });
       continue;
     }
 
@@ -83,12 +90,15 @@ async function processNotifications(root = document) {
 
     item.style.display = "none";
     item.setAttribute("data-yt-shorts-filtered", "true");
-    chrome.runtime.sendMessage({ type: "INCR_STAT", key: "blocked" });
+    safeSendMessage({ type: "INCR_STAT", key: "blocked" });
   }
 }
 
+let lastPathname = location.pathname;
+
 function redirectShortsIfNeeded() {
-  if (!state.enabled || !state.redirectShorts) return;
+  
+  if (!state.loaded || !state.enabled || !state.redirectShorts) return;
 
   const m = location.pathname.match(/^\/shorts\/([A-Za-z0-9_-]{6,})/);
   if (m) {
@@ -96,6 +106,24 @@ function redirectShortsIfNeeded() {
     const target = `${location.origin}/watch?v=${id}`;
     location.replace(target);
   }
+}
+
+function observeUrlChanges() {
+  let urlTimeout;
+  const checkUrlChange = () => {
+    if (location.pathname !== lastPathname) {
+      lastPathname = location.pathname;
+      clearTimeout(urlTimeout);
+      urlTimeout = setTimeout(() => {
+        redirectShortsIfNeeded();
+      }, 100);
+    }
+  };
+
+  if (window.PerformanceNavigationTiming) {
+    window.addEventListener("navigate", checkUrlChange);
+  }
+  setInterval(checkUrlChange, 500);
 }
 
 function applyTheme() {
@@ -113,32 +141,103 @@ function applyTheme() {
 }
 
 function observe() {
-  const mo = new MutationObserver((mutations) => {
-    for (const mu of mutations) {
-      for (const node of mu.addedNodes) {
-        if (!(node instanceof Element)) continue;
-        processNotifications(node);
-      }
+  let debounceTimer = null;
+  const DEBOUNCE_DELAY = 100;
+  
+  const processBatchedMutations = () => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
     }
+
+    const items = document.querySelectorAll(SELECTORS.notificationItem + ":not([__ytShortsFiltered])");
+    for (const item of items) {
+      if (item.__ytShortsFiltered) continue;
+      item.__ytShortsFiltered = true;
+      processSingleNotification(item);
+    }
+  };
+  
+  const mo = new MutationObserver((mutations) => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    debounceTimer = setTimeout(processBatchedMutations, DEBOUNCE_DELAY);
   });
 
   mo.observe(document.documentElement, { childList: true, subtree: true });
 
-  setInterval(() => processNotifications(document), 1500);
+  setInterval(() => {
+    const items = document.querySelectorAll(SELECTORS.notificationItem + ":not([__ytShortsFiltered])");
+    for (const item of items) {
+      if (item.__ytShortsFiltered) continue;
+      item.__ytShortsFiltered = true;
+      processSingleNotification(item);
+    }
+  }, 5000);
+}
+
+async function processSingleNotification(itemEl) {
+  const block = await shouldBlock(itemEl);
+  if (!block) {
+    safeSendMessage({ type: "INCR_STAT", key: "allowed" });
+    return;
+  }
+
+  if (isOnNotificationsPage()) {
+    if (!state.filterNotificationsPage) return;
+  } else {
+    if (!state.filterBell) return;
+  }
+
+  itemEl.style.display = "none";
+  itemEl.setAttribute("data-yt-shorts-filtered", "true");
+  safeSendMessage({ type: "INCR_STAT", key: "blocked" });
+}
+
+function safeSendMessage(message) {
+  try {
+    const promise = chrome.runtime.sendMessage(message);
+    return promise.catch(err => {
+      console.debug('[YT-Shorts-Filter] Message failed (extension context may be invalidated):', err.message || err);
+      return null;
+    });
+  } catch (err) {
+    console.debug('[YT-Shorts-Filter] Message failed (extension context may be invalidated):', err.message || err);
+    return Promise.resolve(null);
+  }
 }
 
 async function loadState() {
-  const res = await chrome.runtime.sendMessage({ type: "GET_STATE" });
-  const st = res?.state || {};
-  Object.assign(state, st);
-  state.loaded = true;
+  try {
+    const res = await safeSendMessage({ type: "GET_STATE" });
+    if (res?.state) {
+      Object.assign(state, res.state);
+    }
+    state.loaded = true;
+  } catch (e) {
+    console.debug('[YT-Shorts-Filter] Failed to load state:', e);
+    state.loaded = true;
+  }
 }
+
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'sync') {
+    if (changes.enabled) state.enabled = changes.enabled.newValue;
+    if (changes.filterBell) state.filterBell = changes.filterBell.newValue;
+    if (changes.filterNotificationsPage) state.filterNotificationsPage = changes.filterNotificationsPage.newValue;
+    if (changes.redirectShorts) state.redirectShorts = changes.redirectShorts.newValue;
+    if (changes.theme) state.theme = changes.theme.newValue;
+    if (changes.whitelistChannels) state.whitelistChannels = changes.whitelistChannels.newValue || [];
+  }
+});
 
 (async function main() {
   await loadState();
   redirectShortsIfNeeded();
   applyTheme();
   observe();
+  observeUrlChanges();
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => processNotifications(document));
