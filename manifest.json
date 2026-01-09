@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "YouTube Shorts Notification Filter",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Filters Shorts from YouTube notifications and optionally redirects Shorts URLs to regular watch pages.",
   "permissions": ["storage"],
   "host_permissions": ["https://www.youtube.com/*", "https://youtube.com/*"],
